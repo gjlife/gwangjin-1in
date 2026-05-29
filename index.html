@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>광진구 1인가구 이용서비스 현황</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cebfb6d0d37931961efadbee5412725a&autoload=false"></script>
+
+<style>
+:root {
+  --primary:#0B5FFF; --primary-dk:#0040CC; --accent:#FF4B6E;
+  --bg:#F0F4FF; --surface:#FFFFFF; --text:#111827; --text-sub:#6B7280;
+  --border:#DDE3F0; --radius:14px;
+  --shadow:0 4px 24px rgba(11,95,255,0.10);
+  --shadow-lg:0 12px 48px rgba(11,95,255,0.16);
+  --cat-의료:#EF4444; --cat-식사:#EC4899; --cat-안전:#F59E0B;
+  --cat-주거:#10B981; --cat-경제:#06B6D4; --cat-사회적관계:#8B5CF6;
+  --cat-돌봄:#6366F1; --cat-문화:#F97316; --cat-기타:#6B7280;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;-webkit-text-size-adjust:100%}
+
+header{background:linear-gradient(135deg,#0B5FFF 0%,#0040CC 60%,#002899 100%);padding:0 12px;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 16px rgba(11,95,255,.3);position:sticky;top:0;z-index:1000}
+.logo{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.logo-icon{width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:8px;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+.logo-text{color:#fff;font-weight:700;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo-sub{display:none}
+nav{display:flex;gap:2px;flex-shrink:0}
+.nav-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.9);padding:6px 7px;border-radius:7px;font-size:10px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap}
+.nav-btn.active{background:#fff;color:var(--primary);border-color:#fff}
+
+.page{display:none;flex:1}
+.page.active{display:flex;flex-direction:column}
+
+/* MAP */
+#page-map{position:relative}
+.map-controls{position:absolute;top:12px;left:0;right:0;z-index:1000;display:flex;gap:5px;padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.map-controls::-webkit-scrollbar{display:none}
+.filter-btn{padding:6px 11px;border-radius:20px;font-size:12px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2);border:2px solid transparent;background:#fff !important}
+.filter-btn.all{border-color:var(--primary);color:var(--primary)}.filter-btn.all.active{background:var(--primary)!important;color:#fff}
+.filter-btn.cat-의료{border-color:var(--cat-의료);color:var(--cat-의료)}.filter-btn.cat-의료.active{background:var(--cat-의료)!important;color:#fff}
+.filter-btn.cat-식사{border-color:var(--cat-식사);color:var(--cat-식사)}.filter-btn.cat-식사.active{background:var(--cat-식사)!important;color:#fff}
+.filter-btn.cat-안전{border-color:var(--cat-안전);color:var(--cat-안전)}.filter-btn.cat-안전.active{background:var(--cat-안전)!important;color:#fff}
+.filter-btn.cat-주거{border-color:var(--cat-주거);color:var(--cat-주거)}.filter-btn.cat-주거.active{background:var(--cat-주거)!important;color:#fff}
+.filter-btn.cat-경제{border-color:var(--cat-경제);color:var(--cat-경제)}.filter-btn.cat-경제.active{background:var(--cat-경제)!important;color:#fff}
+.filter-btn.cat-사회적관계{border-color:var(--cat-사회적관계);color:var(--cat-사회적관계)}.filter-btn.cat-사회적관계.active{background:var(--cat-사회적관계)!important;color:#fff}
+.filter-btn.cat-돌봄{border-color:var(--cat-돌봄);color:var(--cat-돌봄)}.filter-btn.cat-돌봄.active{background:var(--cat-돌봄)!important;color:#fff}
+.filter-btn.cat-문화{border-color:var(--cat-문화);color:var(--cat-문화)}.filter-btn.cat-문화.active{background:var(--cat-문화)!important;color:#fff}
+.filter-btn.cat-기타{border-color:var(--cat-기타);color:var(--cat-기타)}.filter-btn.cat-기타.active{background:var(--cat-기타)!important;color:#fff}
+
+#map-container{width:100%;flex:1;min-height:calc(100vh - 56px)}
+.locate-btn{position:absolute;bottom:24px;right:12px;z-index:1000;width:50px;height:50px;background:#fff;border:none;border-radius:50%;box-shadow:0 2px 12px rgba(0,0,0,.25);font-size:22px;cursor:pointer;display:grid;place-items:center}
+.locate-btn:active{transform:scale(.92)}
+
+.kakao-overlay{background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:16px 18px;min-width:230px;max-width:270px;font-family:'Noto Sans KR',sans-serif;position:relative}
+.kakao-overlay::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);border:10px solid transparent;border-top-color:#fff;border-bottom:0}
+.ov-close{position:absolute;top:8px;right:10px;background:none;border:none;font-size:16px;cursor:pointer;color:#999}
+.ov-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;color:#fff;margin-bottom:8px}
+.ov-title{font-size:15px;font-weight:900;color:#111;margin-bottom:3px}
+.ov-org{font-size:12px;color:#6B7280;margin-bottom:8px}
+.ov-row{font-size:12px;color:#374151;display:flex;gap:6px;margin-bottom:3px}
+.ov-row .lbl{font-weight:700;white-space:nowrap}
+.ov-detail-btn{margin-top:10px;width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+
+/* LIST */
+#page-list{padding:16px;gap:16px}
+.list-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.list-title{font-size:20px;font-weight:900}
+.list-title span{color:var(--primary)}
+.search-bar{display:flex;gap:8px;flex-wrap:wrap;width:100%}
+.search-bar input{padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:15px;font-family:'Noto Sans KR',sans-serif;outline:none;flex:1;min-width:0}
+.search-bar input:focus{border-color:var(--primary)}
+.search-bar select{padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:15px;font-family:'Noto Sans KR',sans-serif;outline:none;background:#fff;width:100%}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-card{background:var(--surface);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;border-left:4px solid var(--primary)}
+.stat-card.accent{border-left-color:var(--accent)}
+.stat-icon{font-size:22px}
+.stat-num{font-size:20px;font-weight:900;color:var(--primary)}
+.stat-card.accent .stat-num{color:var(--accent)}
+.stat-label{font-size:11px;color:var(--text-sub);margin-top:2px}
+.table-wrap{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--primary)}
+thead th{color:#fff;font-weight:600;padding:12px 14px;text-align:left;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody td{padding:11px 14px;vertical-align:middle}
+.badge{display:inline-block;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;color:#fff}
+.cat-의료{background:var(--cat-의료)}.cat-식사{background:var(--cat-식사)}.cat-안전{background:var(--cat-안전)}
+.cat-주거{background:var(--cat-주거)}.cat-경제{background:var(--cat-경제)}.cat-사회적관계{background:var(--cat-사회적관계)}
+.cat-돌봄{background:var(--cat-돌봄)}.cat-문화{background:var(--cat-문화)}.cat-기타{background:var(--cat-기타)}
+.btn-detail{padding:7px 12px;border:2px solid var(--primary);color:var(--primary);background:transparent;border-radius:6px;font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.no-data{text-align:center;padding:48px 20px;color:var(--text-sub);font-size:14px}
+.no-data .icon{font-size:36px;margin-bottom:12px}
+
+/* PROGRAM */
+#page-program{padding:16px;gap:16px}
+.prog-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;border-left:4px solid #10B981}
+.prog-name{font-size:16px;font-weight:900;color:var(--text);margin-bottom:4px}
+.prog-org{font-size:13px;color:var(--text-sub);margin-bottom:10px}
+.prog-info{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.prog-item{font-size:12px;color:var(--text)}
+.prog-item .pl{font-weight:700;color:var(--text-sub)}
+.prog-content{font-size:13px;color:var(--text);line-height:1.6;background:#F8FAFF;border-radius:8px;padding:10px 12px;margin-top:6px}
+.prog-dday{display:inline-block;background:#10B981;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:8px}
+
+/* REGISTER */
+#page-register{padding:16px;justify-content:flex-start}
+.form-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;width:100%}
+.form-title{font-size:18px;font-weight:900;margin-bottom:6px}
+.form-title span{color:var(--primary)}
+.form-desc{font-size:13px;color:var(--text-sub);margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:14px;font-weight:600}
+.form-group label .req{color:var(--accent);margin-left:2px}
+.form-group input,.form-group select,.form-group textarea{padding:12px 14px;border:2px solid var(--border);border-radius:8px;font-size:15px;font-family:'Noto Sans KR',sans-serif;outline:none;background:#fff;-webkit-appearance:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary)}
+.form-group textarea{resize:vertical;min-height:90px}
+.addr-row{display:flex;gap:8px}
+.addr-row input{flex:1}
+.addr-btn{padding:12px 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap}
+.submit-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--primary),var(--primary-dk));color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:8px;box-shadow:0 4px 16px rgba(11,95,255,.3)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed}
+.tab-btns{display:flex;gap:8px;margin-bottom:16px}
+.tab-btn{flex:1;padding:11px;border-radius:8px;border:2px solid var(--border);background:#fff;font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;color:var(--text-sub)}
+.tab-btn.active{border-color:var(--primary);color:var(--primary);background:#EEF3FF}
+
+/* ADMIN */
+#page-admin{padding:16px;gap:16px}
+.admin-login{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px 24px;max-width:400px;margin:40px auto 0;text-align:center;width:100%}
+.admin-login h2{font-size:20px;font-weight:900;margin-bottom:8px}
+.admin-login p{font-size:13px;color:var(--text-sub);margin-bottom:24px}
+.admin-login input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:8px;font-size:16px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:12px;-webkit-appearance:none}
+.admin-login button{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.admin-panel{display:none;flex-direction:column;gap:14px}
+.admin-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.admin-title{font-size:18px;font-weight:900}
+.admin-tabs{display:flex;gap:6px}
+.admin-tab{padding:8px 14px;border-radius:8px;border:2px solid var(--border);background:#fff;font-size:13px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;color:var(--text-sub)}
+.admin-tab.active{border-color:var(--primary);color:var(--primary);background:#EEF3FF}
+.logout-btn{padding:8px 14px;border:2px solid var(--border);border-radius:8px;background:#fff;color:var(--text-sub);font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.status-select{padding:5px 7px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.del-btn{padding:5px 10px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:6px;font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.edit-btn{padding:5px 10px;border:1.5px solid var(--primary);color:var(--primary);background:transparent;border-radius:6px;font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalUp .3s ease}
+@keyframes modalUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{padding:20px 20px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.modal-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#fff;margin-bottom:8px}
+.modal-title{font-size:20px;font-weight:900;line-height:1.3}
+.modal-org{font-size:14px;color:var(--text-sub);margin-top:4px}
+.modal-close{background:var(--bg);border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:grid;place-items:center;flex-shrink:0}
+.modal-body{padding:16px 20px 40px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.modal-item{display:flex;flex-direction:column;gap:3px}
+.modal-item.full{grid-column:1/-1}
+.mi-label{font-size:11px;font-weight:700;color:var(--text-sub);letter-spacing:.05em}
+.mi-val{font-size:14px;color:var(--text);font-weight:500}
+.mi-val a{color:var(--primary);text-decoration:none;font-weight:600}
+.mi-val a:hover{text-decoration:underline}
+.modal-divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+.modal-desc{font-size:14px;line-height:1.7}
+
+/* Edit Modal */
+.edit-modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalUp .3s ease}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(80px);background:#111;color:#fff;padding:12px 24px;border-radius:100px;font-size:14px;font-weight:500;z-index:9999;transition:transform .3s ease;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:#10B981}
+.toast.error{background:var(--accent)}
+
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:5000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay p{font-size:15px;color:var(--text-sub);font-weight:500}
+
+@media(min-width:768px){
+  header{height:64px;padding:0 24px}
+  .logo-sub{display:block;font-size:11px;font-weight:300;opacity:.8}
+  .logo-text{font-size:15px}
+  .nav-btn{padding:8px 14px;font-size:13px}
+  #map-container{min-height:calc(100vh - 64px)}
+  .map-controls{overflow-x:visible;flex-wrap:wrap;justify-content:center}
+  #page-list,#page-program,#page-admin{padding:24px;gap:20px}
+  .stats-row{display:flex;gap:12px}
+  .stat-card{flex:1;min-width:140px}
+  .search-bar{width:auto}
+  .search-bar input{width:200px}
+  .search-bar select{width:auto}
+  #page-register{padding:24px}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .form-card{max-width:760px;margin:0 auto;padding:32px}
+  .modal-overlay{align-items:center;padding:20px}
+  .modal,.edit-modal{border-radius:20px;max-width:580px;max-height:90vh}
+  @keyframes modalUp{from{opacity:0;transform:scale(.96) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading"><div class="spinner"></div><p id="loading-msg">카카오맵을 불러오는 중...</p></div>
+<div class="toast" id="toast"></div>
+
+<!-- 상세보기 Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-badge" id="m-badge"></div><div class="modal-title" id="m-title"></div><div class="modal-org" id="m-org"></div></div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-grid">
+        <div class="modal-item"><div class="mi-label">📍 주소</div><div class="mi-val" id="m-addr"></div></div>
+        <div class="modal-item"><div class="mi-label">📞 연락처</div><div class="mi-val" id="m-phone"></div></div>
+        <div class="modal-item"><div class="mi-label">🕐 운영시간</div><div class="mi-val" id="m-hours"></div></div>
+        <div class="modal-item"><div class="mi-label">👥 서비스 대상</div><div class="mi-val" id="m-target"></div></div>
+        <div class="modal-item"><div class="mi-label">💰 이용요금</div><div class="mi-val" id="m-fee"></div></div>
+        <div class="modal-item"><div class="mi-label">📝 신청방법</div><div class="mi-val" id="m-apply"></div></div>
+        <div class="modal-item full" id="m-homepage-wrap" style="display:none"><div class="mi-label">🌐 홈페이지</div><div class="mi-val" id="m-homepage"></div></div>
+      </div>
+      <hr class="modal-divider">
+      <div class="mi-label" style="margin-bottom:8px">📄 서비스 내용</div>
+      <div class="modal-desc" id="m-desc"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 수정 Modal -->
+<div class="modal-overlay" id="edit-overlay" onclick="closeEditModal(event)">
+  <div class="edit-modal">
+    <div class="modal-header">
+      <div class="modal-title" style="font-size:18px">✏️ 서비스 수정</div>
+      <button class="modal-close" onclick="closeEditModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="e-id">
+      <div class="form-grid" style="gap:12px">
+        <div class="form-group"><label>서비스명</label><input type="text" id="e-name"></div>
+        <div class="form-group"><label>카테고리</label>
+          <select id="e-cat"><option>의료</option><option>식사</option><option>안전</option><option>주거</option><option>경제</option><option>사회적관계</option><option>돌봄</option><option>문화</option><option>기타</option></select>
+        </div>
+        <div class="form-group"><label>운영기관</label><input type="text" id="e-org"></div>
+        <div class="form-group"><label>연락처</label><input type="text" id="e-phone"></div>
+        <div class="form-group full"><label>주소</label>
+          <div class="addr-row"><input type="text" id="e-addr"><button class="addr-btn" onclick="searchAddressEdit()">📍 검색</button></div>
+        </div>
+        <div class="form-group"><label>운영시간</label><input type="text" id="e-hours"></div>
+        <div class="form-group"><label>서비스 대상</label><input type="text" id="e-target"></div>
+        <div class="form-group"><label>이용요금</label><input type="text" id="e-fee"></div>
+        <div class="form-group"><label>신청방법</label><input type="text" id="e-apply"></div>
+        <div class="form-group"><label>홈페이지</label><input type="text" id="e-homepage" placeholder="https://"></div>
+        <div class="form-group full"><label>서비스 내용</label><textarea id="e-desc" style="min-height:80px"></textarea></div>
+      </div>
+      <button class="submit-btn" onclick="submitEdit()" style="margin-top:16px">💾 수정 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 프로그램 수정 Modal -->
+<div class="modal-overlay" id="prog-edit-overlay" onclick="closeProgEditModal(event)">
+  <div class="edit-modal">
+    <div class="modal-header">
+      <div class="modal-title" style="font-size:18px">✏️ 프로그램 수정</div>
+      <button class="modal-close" onclick="closeProgEditModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pe-id">
+      <div class="form-grid" style="gap:12px">
+        <div class="form-group"><label>프로그램명</label><input type="text" id="pe-name"></div>
+        <div class="form-group"><label>운영기관</label><input type="text" id="pe-org"></div>
+        <div class="form-group"><label>신청 시작일</label><input type="date" id="pe-applyStart"></div>
+        <div class="form-group"><label>신청 종료일</label><input type="date" id="pe-applyEnd"></div>
+        <div class="form-group"><label>진행 시작일</label><input type="date" id="pe-progStart"></div>
+        <div class="form-group"><label>진행 종료일</label><input type="date" id="pe-progEnd"></div>
+        <div class="form-group"><label>신청 인원</label><input type="text" id="pe-capacity" placeholder="예: 20명"></div>
+        <div class="form-group"><label>비고</label><input type="text" id="pe-note"></div>
+        <div class="form-group full"><label>활동 내용</label><textarea id="pe-content" style="min-height:80px"></textarea></div>
+      </div>
+      <button class="submit-btn" onclick="submitProgEdit()" style="margin-top:16px">💾 수정 저장</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏘️</div>
+    <div class="logo-text">광진구 1인가구 서비스<div class="logo-sub">Gwangjin-gu Single Household Services</div></div>
+  </div>
+  <nav>
+    <button class="nav-btn active" onclick="showPage('map')"      id="nav-map">🗺️지도</button>
+    <button class="nav-btn"        onclick="showPage('list')"     id="nav-list">📋목록</button>
+    <button class="nav-btn"        onclick="showPage('program')"  id="nav-program">📣프로그램</button>
+    <button class="nav-btn"        onclick="showPage('register')" id="nav-register">✏️등록</button>
+    <button class="nav-btn"        onclick="showPage('admin')"    id="nav-admin">⚙️관리</button>
+  </nav>
+</header>
+
+<!-- MAP -->
+<div class="page active" id="page-map">
+  <div class="map-controls">
+    <button class="filter-btn all active"      onclick="filterMap('전체',this)">전체</button>
+    <button class="filter-btn cat-의료"        onclick="filterMap('의료',this)">의료</button>
+    <button class="filter-btn cat-식사"        onclick="filterMap('식사',this)">식사</button>
+    <button class="filter-btn cat-안전"        onclick="filterMap('안전',this)">안전</button>
+    <button class="filter-btn cat-주거"        onclick="filterMap('주거',this)">주거</button>
+    <button class="filter-btn cat-경제"        onclick="filterMap('경제',this)">경제</button>
+    <button class="filter-btn cat-사회적관계"  onclick="filterMap('사회적관계',this)">사회적관계</button>
+    <button class="filter-btn cat-돌봄"        onclick="filterMap('돌봄',this)">돌봄</button>
+    <button class="filter-btn cat-문화"        onclick="filterMap('문화',this)">문화</button>
+    <button class="filter-btn cat-기타"        onclick="filterMap('기타',this)">기타</button>
+  </div>
+  <button class="locate-btn" onclick="goToMyLocation()">📍</button>
+  <div id="map-container"></div>
+</div>
+
+<!-- LIST -->
+<div class="page" id="page-list">
+  <div class="list-header">
+    <div class="list-title">서비스 <span>목록</span></div>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="서비스명·운영기관 검색..." oninput="renderTable()">
+      <select id="cat-filter" onchange="renderTable()">
+        <option value="">전체 카테고리</option>
+        <option>의료</option><option>식사</option><option>안전</option><option>주거</option>
+        <option>경제</option><option>사회적관계</option><option>돌봄</option><option>문화</option><option>기타</option>
+      </select>
+    </div>
+  </div>
+  <div class="stats-row" id="stats-row"></div>
+  <div class="table-wrap"><div class="table-scroll">
+    <table>
+      <thead><tr><th>카테고리</th><th>서비스명</th><th>운영기관</th><th>주소</th><th>연락처</th><th>요금</th><th>상세</th></tr></thead>
+      <tbody id="service-tbody"></tbody>
+    </table>
+  </div></div>
+</div>
+
+<!-- PROGRAM -->
+<div class="page" id="page-program">
+  <div class="list-header">
+    <div class="list-title">진행중 <span>프로그램</span></div>
+  </div>
+  <div id="prog-list"><div class="no-data"><div class="icon">📋</div>프로그램을 불러오는 중...</div></div>
+</div>
+
+<!-- REGISTER -->
+<div class="page" id="page-register">
+  <div class="tab-btns">
+    <button class="tab-btn active" id="tab-svc"  onclick="switchRegTab('svc')">🏢 서비스 등록</button>
+    <button class="tab-btn"        id="tab-prog" onclick="switchRegTab('prog')">📣 프로그램 등록</button>
+  </div>
+
+  <!-- 서비스 등록 폼 -->
+  <div id="reg-svc">
+    <div class="form-card">
+      <div class="form-title">서비스 <span>등록</span></div>
+      <div class="form-desc">광진구 1인가구를 위한 서비스를 등록해 주세요. 관리자 승인 후 지도에 표시됩니다.</div>
+      <div class="form-grid">
+        <div class="form-group"><label>서비스명 <span class="req">*</span></label><input type="text" id="f-name" placeholder="예: 1인가구 반찬 지원"></div>
+        <div class="form-group"><label>카테고리 <span class="req">*</span></label>
+          <select id="f-cat"><option value="">선택하세요</option><option>의료</option><option>식사</option><option>안전</option><option>주거</option><option>경제</option><option>사회적관계</option><option>돌봄</option><option>문화</option><option>기타</option></select>
+        </div>
+        <div class="form-group"><label>운영기관 <span class="req">*</span></label><input type="text" id="f-org" placeholder="예: 광진구청 복지과"></div>
+        <div class="form-group"><label>연락처</label><input type="text" id="f-phone" placeholder="예: 02-450-1234"></div>
+        <div class="form-group full">
+          <label>주소 <span class="req">*</span></label>
+          <div class="addr-row"><input type="text" id="f-addr" placeholder="예: 서울 광진구 자양로 117"><button class="addr-btn" onclick="searchAddress()">📍 검색</button></div>
+          <input type="text" id="f-addr-detail" placeholder="상세 주소" style="margin-top:8px;padding:12px 14px;border:2px solid var(--border);border-radius:8px;font-size:15px;font-family:'Noto Sans KR',sans-serif;outline:none;width:100%">
+        </div>
+        <div class="form-group"><label>운영시간</label><input type="text" id="f-hours" placeholder="예: 평일 09:00~18:00"></div>
+        <div class="form-group"><label>서비스 대상</label><input type="text" id="f-target" placeholder="예: 광진구 거주 1인가구"></div>
+        <div class="form-group"><label>이용요금</label><input type="text" id="f-fee" placeholder="예: 무료 / 월 10,000원"></div>
+        <div class="form-group"><label>신청방법</label><input type="text" id="f-apply" placeholder="예: 방문/전화/온라인"></div>
+        <div class="form-group full"><label>홈페이지</label><input type="text" id="f-homepage" placeholder="https://www.example.com"></div>
+        <div class="form-group full"><label>서비스 내용 <span class="req">*</span></label><textarea id="f-desc" placeholder="서비스의 주요 내용을 상세히 작성해 주세요."></textarea></div>
+        <div class="form-group full"><label>등록자 <span class="req">*</span></label><input type="text" id="f-registrant" placeholder="이름 또는 기관명"></div>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="submitForm()">✅ 서비스 등록 신청</button>
+    </div>
+  </div>
+
+  <!-- 프로그램 등록 폼 -->
+  <div id="reg-prog" style="display:none">
+    <div class="form-card">
+      <div class="form-title">프로그램 <span>등록</span></div>
+      <div class="form-desc">신청기간 동안만 프로그램 목록에 표시됩니다.</div>
+      <div class="form-grid">
+        <div class="form-group full"><label>프로그램명 <span class="req">*</span></label><input type="text" id="p-name" placeholder="예: 1인가구 요리교실"></div>
+        <div class="form-group full"><label>운영기관 <span class="req">*</span></label><input type="text" id="p-org" placeholder="예: 광진구1인가구지원센터"></div>
+        <div class="form-group"><label>신청 시작일 <span class="req">*</span></label><input type="date" id="p-applyStart"></div>
+        <div class="form-group"><label>신청 종료일 <span class="req">*</span></label><input type="date" id="p-applyEnd"></div>
+        <div class="form-group"><label>진행 시작일</label><input type="date" id="p-progStart"></div>
+        <div class="form-group"><label>진행 종료일</label><input type="date" id="p-progEnd"></div>
+        <div class="form-group"><label>신청 인원</label><input type="text" id="p-capacity" placeholder="예: 20명"></div>
+        <div class="form-group"><label>비고</label><input type="text" id="p-note" placeholder="기타 안내사항"></div>
+        <div class="form-group full"><label>활동 내용 <span class="req">*</span></label><textarea id="p-content" placeholder="프로그램 활동 내용을 작성해 주세요."></textarea></div>
+      </div>
+      <button class="submit-btn" id="prog-submit-btn" onclick="submitProgram()">✅ 프로그램 등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="page" id="page-admin">
+  <div class="admin-login" id="admin-login">
+    <div style="font-size:40px;margin-bottom:12px">🔐</div>
+    <h2>관리자 로그인</h2>
+    <p>서비스 승인·수정·삭제 등<br>관리자 기능에 접근합니다.</p>
+    <input type="password" id="admin-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')adminLogin()">
+    <button onclick="adminLogin()">로그인</button>
+  </div>
+  <div class="admin-panel" id="admin-panel">
+    <div class="admin-header">
+      <div class="admin-title">⚙️ 관리</div>
+      <div class="admin-tabs">
+        <button class="admin-tab active" id="atab-svc"  onclick="switchAdminTab('svc')">서비스</button>
+        <button class="admin-tab"        id="atab-prog" onclick="switchAdminTab('prog')">프로그램</button>
+      </div>
+      <button class="logout-btn" onclick="adminLogout()">로그아웃</button>
+    </div>
+
+    <!-- 서비스 관리 테이블 -->
+    <div id="admin-svc-panel">
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr><th>번호</th><th>카테고리</th><th>서비스명</th><th>운영기관</th><th>등록자</th><th>등록일</th><th>승인</th><th>상세</th><th>수정</th><th>삭제</th></tr></thead>
+          <tbody id="admin-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <!-- 프로그램 관리 테이블 -->
+    <div id="admin-prog-panel" style="display:none">
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr><th>번호</th><th>프로그램명</th><th>운영기관</th><th>신청기간</th><th>진행기간</th><th>신청인원</th><th>수정</th><th>삭제</th></tr></thead>
+          <tbody id="admin-prog-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBloOfdMnP_U6krS6g713_FVUXK3UT5sLD44exjgRNpe2cvPrGhO0a2HKY3vWGNJKQQA/exec';
+
+var map, allServices = [], overlays = [];
+var allPrograms = [], activePrograms = [];
+var currentFilter = '전체';
+var adminPw = '', adminServices = [], adminProgs = [];
+var myLocationMarker = null;
+
+var CAT_COLORS = {
+  '의료':'#EF4444','식사':'#EC4899','안전':'#F59E0B',
+  '주거':'#10B981','경제':'#06B6D4','사회적관계':'#8B5CF6',
+  '돌봄':'#6366F1','문화':'#F97316','기타':'#6B7280'
+};
+
+// 카카오맵 초기화
+kakao.maps.load(function() {
+  setLoadingMsg('서비스 데이터를 불러오는 중...');
+  initMap();
+  loadAll();
+});
+
+function initMap() {
+  map = new kakao.maps.Map(document.getElementById('map-container'), {
+    center: new kakao.maps.LatLng(37.5385, 127.0823), level: 4
+  });
+  map.addControl(new kakao.maps.ZoomControl(),    kakao.maps.ControlPosition.RIGHT);
+  map.addControl(new kakao.maps.MapTypeControl(), kakao.maps.ControlPosition.TOPRIGHT);
+}
+
+function loadAll() {
+  var p1 = fetch(APPS_SCRIPT_URL+'?action=getApproved').then(function(r){return r.json();});
+  var p2 = fetch(APPS_SCRIPT_URL+'?action=getPrograms').then(function(r){return r.json();});
+  Promise.all([p1,p2])
+    .then(function(res){
+      allServices    = Array.isArray(res[0]) ? res[0] : [];
+      activePrograms = Array.isArray(res[1]) ? res[1] : [];
+      renderMarkers(); renderTable(); renderStats(); renderPrograms();
+      hideLoading();
+    })
+    .catch(function(){
+      hideLoading(); showToast('데이터 로드 실패','error');
+    });
+}
+
+function renderMarkers() {
+  overlays.forEach(function(o){o.marker.setMap(null);o.overlay.setMap(null);}); overlays=[];
+  var list = currentFilter==='전체' ? allServices : allServices.filter(function(s){return s.category===currentFilter;});
+  list.forEach(function(svc){
+    var lat=parseFloat(svc.lat),lng=parseFloat(svc.lng);
+    if(!lat||!lng)return;
+    var color=CAT_COLORS[svc.category]||CAT_COLORS['기타'];
+    var pos=new kakao.maps.LatLng(lat,lng);
+    var svg="<svg xmlns='http://www.w3.org/2000/svg' width='36' height='44' viewBox='0 0 36 44'><ellipse cx='18' cy='42' rx='8' ry='3' fill='rgba(0,0,0,0.15)'/><path d='M18 0C8 0 0 8 0 18c0 12 18 26 18 26S36 30 36 18C36 8 28 0 18 0z' fill='"+color+"'/><circle cx='18' cy='18' r='9' fill='white' opacity='0.95'/></svg>";
+    var marker=new kakao.maps.Marker({position:pos,image:new kakao.maps.MarkerImage('data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg),new kakao.maps.Size(36,44),{offset:new kakao.maps.Point(18,44)}),map:map});
+    var content="<div class='kakao-overlay'><button class='ov-close' onclick='closeOverlay(\""+svc.id+"\")'>✕</button><div class='ov-badge' style='background:"+color+"'>"+svc.category+"</div><div class='ov-title'>"+svc.serviceName+"</div><div class='ov-org'>"+(svc.organization||'')+"</div><div class='ov-row'><span class='lbl'>📍</span><span>"+(svc.address||'-')+"</span></div><div class='ov-row'><span class='lbl'>📞</span><span>"+(svc.phone||'-')+"</span></div><button class='ov-detail-btn' onclick='openModal(\""+svc.id+"\")'>상세 정보 보기</button></div>";
+    var overlay=new kakao.maps.CustomOverlay({content:content,position:pos,yAnchor:1.35,map:null});
+    kakao.maps.event.addListener(marker,'click',function(){overlays.forEach(function(o){o.overlay.setMap(null);});overlay.setMap(map);});
+    overlays.push({id:svc.id,marker:marker,overlay:overlay});
+  });
+}
+
+function closeOverlay(id){var f=overlays.find(function(o){return String(o.id)===String(id);});if(f)f.overlay.setMap(null);}
+
+function goToMyLocation(){
+  if(!navigator.geolocation){showToast('위치 서비스를 지원하지 않습니다.','error');return;}
+  showToast('내 위치를 찾는 중...','');
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      var latlng=new kakao.maps.LatLng(pos.coords.latitude,pos.coords.longitude);
+      if(myLocationMarker)myLocationMarker.setMap(null);
+      myLocationMarker=new kakao.maps.CustomOverlay({content:"<div style='width:20px;height:20px;background:#0B5FFF;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)'></div>",position:latlng,map:map});
+      map.setCenter(latlng);map.setLevel(3);showToast('내 위치로 이동했어요!','success');
+    },
+    function(err){showToast(err.code===1?'위치 권한을 허용해 주세요.':'위치를 가져올 수 없습니다.','error');},
+    {enableHighAccuracy:true,timeout:10000}
+  );
+}
+
+function filterMap(cat,btn){
+  currentFilter=cat;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');renderMarkers();
+}
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='list'){renderTable();renderStats();}
+  if(name==='program'){renderPrograms();}
+  if(name==='map'&&map){setTimeout(function(){map.relayout();},100);}
+}
+
+// 주소 간소화 (지번주소만 표시)
+function shortAddr(addr){
+  if(!addr||addr==='-')return '-';
+  // "서울 광진구 능동로 81 302호(광진구1인가구지원센터)" → "능동로 81"
+  var m = addr.match(/(?:서울\s+)?(?:\S+구\s+)?(.+?)(?:\s+\d+층|\s+\d+호|\s*\(|$)/);
+  if(m&&m[1]){
+    // 앞에 구 이름 제거
+    var s = m[1].replace(/^[\S]+구\s+/,'').trim();
+    // 번지까지만 (숫자 이후 잘라냄)
+    var s2 = s.replace(/(\d+(-\d+)?).*/,'$1');
+    return s.split(' ').slice(0,2).join(' ');
+  }
+  return addr.split(' ').slice(-2).join(' ');
+}
+
+function renderStats(){
+  var cats={},fc=0;
+  allServices.forEach(function(s){cats[s.category]=(cats[s.category]||0)+1;if(s.fee&&s.fee.indexOf('무료')!==-1)fc++;});
+  var top=Object.entries(cats).sort(function(a,b){return b[1]-a[1];})[0];
+  document.getElementById('stats-row').innerHTML=
+    "<div class='stat-card'><div class='stat-icon'>🏢</div><div class='stat-info'><div class='stat-num'>"+allServices.length+"</div><div class='stat-label'>전체 서비스</div></div></div>"+
+    "<div class='stat-card accent'><div class='stat-icon'>🎁</div><div class='stat-info'><div class='stat-num'>"+fc+"</div><div class='stat-label'>무료 서비스</div></div></div>"+
+    "<div class='stat-card'><div class='stat-icon'>🏆</div><div class='stat-info'><div class='stat-num'>"+(top?top[0]:'-')+"</div><div class='stat-label'>최다 ("+(top?top[1]:0)+"건)</div></div></div>"+
+    "<div class='stat-card'><div class='stat-icon'>🗂️</div><div class='stat-info'><div class='stat-num'>"+Object.keys(cats).length+"</div><div class='stat-label'>서비스 종류</div></div></div>";
+}
+
+function renderTable(){
+  var kw=(document.getElementById('search-input').value||'').toLowerCase();
+  var cv=document.getElementById('cat-filter').value||'';
+  var fl=allServices.filter(function(s){
+    var matchKw = !kw || s.serviceName.toLowerCase().indexOf(kw)!==-1 || s.organization.toLowerCase().indexOf(kw)!==-1;
+    return matchKw && (!cv||s.category===cv);
+  });
+  var tb=document.getElementById('service-tbody');
+  if(!fl.length){tb.innerHTML="<tr><td colspan='7'><div class='no-data'><div class='icon'>🔍</div>"+(allServices.length===0?"아직 등록된 서비스가 없습니다.":"조건에 맞는 서비스가 없습니다.")+"</div></td></tr>";return;}
+  tb.innerHTML=fl.map(function(s){
+    return "<tr>"
+      +"<td><span class='badge cat-"+(s.category||'기타')+"'>"+(s.category||'기타')+"</span></td>"
+      +"<td style='font-weight:600'>"+s.serviceName+"</td>"
+      +"<td style='font-size:12px'>"+( s.organization||'-')+"</td>"
+      +"<td style='font-size:12px;color:var(--text-sub)'>"+shortAddr(s.address)+"</td>"
+      +"<td style='font-size:12px'>"+(s.phone?'<a href="tel:'+s.phone+'" style="color:var(--primary);text-decoration:none;font-weight:600">'+s.phone+'</a>':'-')+"</td>"
+      +"<td style='font-size:12px'>"+( s.fee||'-')+"</td>"
+      +"<td><button class='btn-detail' onclick='openModal(\""+s.id+"\")'>상세</button></td>"
+      +"</tr>";
+  }).join('');
+}
+
+// 프로그램 목록 렌더링
+function renderPrograms(){
+  var el=document.getElementById('prog-list');
+  if(!activePrograms.length){
+    el.innerHTML="<div class='no-data'><div class='icon'>📋</div>현재 신청 가능한 프로그램이 없습니다.</div>";
+    return;
+  }
+  el.innerHTML=activePrograms.map(function(p){
+    var today=new Date(); today.setHours(0,0,0,0);
+    var end=new Date(p.applyEnd); end.setHours(23,59,59,999);
+    var diff=Math.ceil((end-today)/(1000*60*60*24));
+    var dday=diff===0?'D-Day':'D-'+diff;
+    return "<div class='prog-card'>"
+      +"<div class='prog-dday'>"+dday+"</div>"
+      +"<div class='prog-name'>"+p.programName+"</div>"
+      +"<div class='prog-org'>"+p.organization+"</div>"
+      +"<div class='prog-info'>"
+        +"<div class='prog-item'><span class='pl'>📅 신청기간 </span>"+p.applyStart+" ~ "+p.applyEnd+"</div>"
+        +"<div class='prog-item'><span class='pl'>🗓️ 진행기간 </span>"+(p.progStart?p.progStart+' ~ '+p.progEnd:'-')+"</div>"
+        +"<div class='prog-item'><span class='pl'>👥 신청인원 </span>"+(p.capacity||'-')+"</div>"
+        +(p.note?"<div class='prog-item'><span class='pl'>📌 비고 </span>"+p.note+"</div>":"")
+      +"</div>"
+      +(p.content?"<div class='prog-content'>"+p.content+"</div>":"")
+      +"</div>";
+  }).join('');
+}
+
+function openModal(id){
+  var s=allServices.find(function(x){return String(x.id)===String(id);})||adminServices.find(function(x){return String(x.id)===String(id);});
+  if(!s)return;
+  var color=CAT_COLORS[s.category]||CAT_COLORS['기타'];
+  document.getElementById('m-badge').textContent=s.category||'기타';
+  document.getElementById('m-badge').style.background=color;
+  document.getElementById('m-title').textContent=s.serviceName;
+  document.getElementById('m-org').textContent=s.organization||'';
+  document.getElementById('m-addr').textContent=s.address||'-';
+  // 전화 클릭 시 바로 전화
+  var phoneEl=document.getElementById('m-phone');
+  if(s.phone){phoneEl.innerHTML="<a href='tel:"+s.phone+"' style='color:var(--primary);font-weight:700;text-decoration:none'>"+s.phone+"</a>";}
+  else{phoneEl.textContent='-';}
+  document.getElementById('m-hours').textContent=s.hours||'-';
+  document.getElementById('m-target').textContent=s.target||'-';
+  document.getElementById('m-fee').textContent=s.fee||'-';
+  document.getElementById('m-apply').textContent=s.applyMethod||'-';
+  // 홈페이지
+  var hpWrap=document.getElementById('m-homepage-wrap');
+  var hpEl=document.getElementById('m-homepage');
+  if(s.homepage&&s.homepage.trim()){
+    hpWrap.style.display='';
+    hpEl.innerHTML="<a href='"+s.homepage+"' target='_blank' rel='noopener'>"+s.homepage+"</a>";
+  } else { hpWrap.style.display='none'; }
+  document.getElementById('m-desc').textContent=s.description||'-';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e){if(e.target===document.getElementById('modal-overlay'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('modal-overlay').classList.remove('open');}
+
+// 수정 모달
+function openEditModal(id){
+  var s=adminServices.find(function(x){return String(x.id)===String(id);});
+  if(!s)return;
+  document.getElementById('e-id').value=s.id;
+  document.getElementById('e-name').value=s.serviceName;
+  document.getElementById('e-cat').value=s.category;
+  document.getElementById('e-org').value=s.organization;
+  document.getElementById('e-phone').value=s.phone;
+  document.getElementById('e-addr').value=s.address;
+  document.getElementById('e-hours').value=s.hours;
+  document.getElementById('e-target').value=s.target;
+  document.getElementById('e-fee').value=s.fee;
+  document.getElementById('e-apply').value=s.applyMethod;
+  document.getElementById('e-homepage').value=s.homepage||'';
+  document.getElementById('e-desc').value=s.description;
+  document.getElementById('edit-overlay').classList.add('open');
+}
+function closeEditModal(e){if(e.target===document.getElementById('edit-overlay'))closeEditModalDirect();}
+function closeEditModalDirect(){document.getElementById('edit-overlay').classList.remove('open');}
+
+function submitEdit(){
+  var data={
+    action:'update', pw:adminPw,
+    id:document.getElementById('e-id').value,
+    serviceName:document.getElementById('e-name').value,
+    category:document.getElementById('e-cat').value,
+    organization:document.getElementById('e-org').value,
+    phone:document.getElementById('e-phone').value,
+    address:document.getElementById('e-addr').value,
+    hours:document.getElementById('e-hours').value,
+    target:document.getElementById('e-target').value,
+    fee:document.getElementById('e-fee').value,
+    applyMethod:document.getElementById('e-apply').value,
+    homepage:document.getElementById('e-homepage').value,
+    description:document.getElementById('e-desc').value
+  };
+  fetch(APPS_SCRIPT_URL+'?action=update',{method:'POST',body:JSON.stringify(data)})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.success){showToast('수정되었습니다.','success');closeEditModalDirect();loadAdminData();}
+      else showToast(res.error||'오류','error');
+    });
+}
+
+function searchAddress(){new daum.Postcode({oncomplete:function(d){document.getElementById('f-addr').value=d.roadAddress||d.jibunAddress;}}).open();}
+function searchAddressEdit(){new daum.Postcode({oncomplete:function(d){document.getElementById('e-addr').value=d.roadAddress||d.jibunAddress;}}).open();}
+
+// 등록 탭 전환
+function switchRegTab(tab){
+  document.getElementById('reg-svc').style.display  = tab==='svc'  ? '' : 'none';
+  document.getElementById('reg-prog').style.display = tab==='prog' ? '' : 'none';
+  document.getElementById('tab-svc').classList.toggle('active',  tab==='svc');
+  document.getElementById('tab-prog').classList.toggle('active', tab==='prog');
+}
+
+function submitForm(){
+  var req={'f-name':'서비스명','f-cat':'카테고리','f-org':'운영기관','f-addr':'주소','f-desc':'서비스 내용','f-registrant':'등록자'};
+  for(var id in req){if(!document.getElementById(id).value.trim()){showToast('"'+req[id]+'"을(를) 입력해 주세요.','error');document.getElementById(id).focus();return;}}
+  var btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ 등록 중...';
+  var d={action:'add',
+    serviceName:document.getElementById('f-name').value.trim(),
+    category:document.getElementById('f-cat').value,
+    organization:document.getElementById('f-org').value.trim(),
+    phone:document.getElementById('f-phone').value.trim(),
+    address:document.getElementById('f-addr').value.trim()+' '+document.getElementById('f-addr-detail').value.trim(),
+    hours:document.getElementById('f-hours').value.trim(),
+    target:document.getElementById('f-target').value.trim(),
+    fee:document.getElementById('f-fee').value.trim(),
+    applyMethod:document.getElementById('f-apply').value.trim(),
+    homepage:document.getElementById('f-homepage').value.trim(),
+    description:document.getElementById('f-desc').value.trim(),
+    registrant:document.getElementById('f-registrant').value.trim()
+  };
+  fetch(APPS_SCRIPT_URL+'?action=add',{method:'POST',body:JSON.stringify(d)})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      btn.disabled=false;btn.textContent='✅ 서비스 등록 신청';
+      showToast(res.message,res.success?'success':'error');
+      if(res.success)['f-name','f-cat','f-org','f-phone','f-addr','f-addr-detail','f-hours','f-target','f-fee','f-apply','f-homepage','f-desc','f-registrant'].forEach(function(id){document.getElementById(id).value='';});
+    })
+    .catch(function(){btn.disabled=false;btn.textContent='✅ 서비스 등록 신청';showToast('오류가 발생했습니다.','error');});
+}
+
+function submitProgram(){
+  var req={'p-name':'프로그램명','p-org':'운영기관','p-applyStart':'신청 시작일','p-applyEnd':'신청 종료일','p-content':'활동 내용'};
+  for(var id in req){if(!document.getElementById(id).value.trim()){showToast('"'+req[id]+'"을(를) 입력해 주세요.','error');document.getElementById(id).focus();return;}}
+  var btn=document.getElementById('prog-submit-btn');btn.disabled=true;btn.textContent='⏳ 등록 중...';
+  var d={action:'addProgram',
+    programName:document.getElementById('p-name').value.trim(),
+    organization:document.getElementById('p-org').value.trim(),
+    applyStart:document.getElementById('p-applyStart').value,
+    applyEnd:document.getElementById('p-applyEnd').value,
+    progStart:document.getElementById('p-progStart').value,
+    progEnd:document.getElementById('p-progEnd').value,
+    capacity:document.getElementById('p-capacity').value.trim(),
+    note:document.getElementById('p-note').value.trim(),
+    content:document.getElementById('p-content').value.trim()
+  };
+  fetch(APPS_SCRIPT_URL+'?action=addProgram',{method:'POST',body:JSON.stringify(d)})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      btn.disabled=false;btn.textContent='✅ 프로그램 등록';
+      showToast(res.message,res.success?'success':'error');
+      if(res.success)['p-name','p-org','p-applyStart','p-applyEnd','p-progStart','p-progEnd','p-capacity','p-note','p-content'].forEach(function(id){document.getElementById(id).value='';});
+    })
+    .catch(function(){btn.disabled=false;btn.textContent='✅ 프로그램 등록';showToast('오류가 발생했습니다.','error');});
+}
+
+// 관리자
+function adminLogin(){
+  adminPw=document.getElementById('admin-pw').value;
+  if(!adminPw){showToast('비밀번호를 입력하세요.','error');return;}
+  loadAdminData();
+}
+function loadAdminData(){
+  var p1=fetch(APPS_SCRIPT_URL+'?action=getAll&pw='+encodeURIComponent(adminPw)).then(function(r){return r.json();});
+  var p2=fetch(APPS_SCRIPT_URL+'?action=getAllPrograms&pw='+encodeURIComponent(adminPw)).then(function(r){return r.json();});
+  Promise.all([p1,p2]).then(function(res){
+    if(res[0]&&res[0].error){showToast(res[0].error,'error');return;}
+    adminServices=Array.isArray(res[0])?res[0]:[];
+    adminProgs   =Array.isArray(res[1])?res[1]:[];
+    document.getElementById('admin-login').style.display='none';
+    document.getElementById('admin-panel').style.display='flex';
+    renderAdminTable(); renderAdminProgTable();
+  }).catch(function(){showToast('오류가 발생했습니다.','error');});
+}
+function adminLogout(){adminPw='';adminServices=[];adminProgs=[];document.getElementById('admin-login').style.display='block';document.getElementById('admin-panel').style.display='none';document.getElementById('admin-pw').value='';}
+
+function switchAdminTab(tab){
+  document.getElementById('admin-svc-panel').style.display  = tab==='svc'  ? '' : 'none';
+  document.getElementById('admin-prog-panel').style.display = tab==='prog' ? '' : 'none';
+  document.getElementById('atab-svc').classList.toggle('active',  tab==='svc');
+  document.getElementById('atab-prog').classList.toggle('active', tab==='prog');
+}
+
+function renderAdminTable(){
+  var tb=document.getElementById('admin-tbody');
+  if(!adminServices.length){tb.innerHTML="<tr><td colspan='10'><div class='no-data'><div class='icon'>📂</div>등록된 서비스가 없습니다.</div></td></tr>";return;}
+  tb.innerHTML=adminServices.map(function(s){return"<tr>"
+    +"<td>"+s.id+"</td>"
+    +"<td><span class='badge cat-"+(s.category||'기타')+"'>"+s.category+"</span></td>"
+    +"<td style='font-weight:600'>"+s.serviceName+"</td>"
+    +"<td>"+(s.organization||'-')+"</td>"
+    +"<td>"+(s.registrant||'-')+"</td>"
+    +"<td style='font-size:11px;color:var(--text-sub)'>"+(s.regDate||'-')+"</td>"
+    +"<td><select class='status-select' onchange='changeStatus(\""+s.id+"\",this.value)'>"
+      +"<option"+(s.status==='대기'?' selected':'')+">대기</option>"
+      +"<option"+(s.status==='승인'?' selected':'')+">승인</option>"
+      +"<option"+(s.status==='반려'?' selected':'')+">반려</option>"
+    +"</select></td>"
+    +"<td><button class='btn-detail' onclick='openModal(\""+s.id+"\")'>상세</button></td>"
+    +"<td><button class='edit-btn' onclick='openEditModal(\""+s.id+"\")'>수정</button></td>"
+    +"<td><button class='del-btn' onclick='deleteRow(\""+s.id+"\")'>삭제</button></td>"
+    +"</tr>";}).join('');
+}
+
+function renderAdminProgTable(){
+  var tb=document.getElementById('admin-prog-tbody');
+  if(!adminProgs.length){tb.innerHTML="<tr><td colspan='8'><div class='no-data'><div class='icon'>📂</div>등록된 프로그램이 없습니다.</div></td></tr>";return;}
+  tb.innerHTML=adminProgs.map(function(p){return"<tr>"
+    +"<td>"+p.id+"</td>"
+    +"<td style='font-weight:600'>"+p.programName+"</td>"
+    +"<td>"+(p.organization||'-')+"</td>"
+    +"<td style='font-size:11px'>"+p.applyStart+" ~ "+p.applyEnd+"</td>"
+    +"<td style='font-size:11px'>"+(p.progStart?p.progStart+' ~ '+p.progEnd:'-')+"</td>"
+    +"<td>"+(p.capacity||'-')+"</td>"
+    +"<td><button class='edit-btn' onclick='openProgEditModal(\""+p.id+"\")'>수정</button></td>"
+    +"<td><button class='del-btn' onclick='deleteProgRow(\""+p.id+"\")'>삭제</button></td>"
+    +"</tr>";}).join('');
+}
+
+function changeStatus(id,status){
+  fetch(APPS_SCRIPT_URL+'?action=approve&id='+id+'&status='+encodeURIComponent(status)+'&pw='+encodeURIComponent(adminPw))
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.success){showToast('"'+status+'"으로 변경되었습니다.','success');refreshApproved();}
+      else showToast(res.error||'오류','error');
+    });
+}
+function deleteRow(id){
+  if(!confirm('정말 삭제하시겠습니까?'))return;
+  fetch(APPS_SCRIPT_URL+'?action=delete&id='+id+'&pw='+encodeURIComponent(adminPw))
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.success){showToast('삭제되었습니다.','success');adminServices=adminServices.filter(function(s){return String(s.id)!==String(id);});renderAdminTable();refreshApproved();}
+      else showToast(res.error||'오류','error');
+    });
+}
+function deleteProgRow(id){
+  if(!confirm('프로그램을 삭제하시겠습니까?'))return;
+  fetch(APPS_SCRIPT_URL+'?action=deleteProgram&id='+id+'&pw='+encodeURIComponent(adminPw))
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.success){showToast('삭제되었습니다.','success');adminProgs=adminProgs.filter(function(p){return String(p.id)!==String(id);});renderAdminProgTable();}
+      else showToast(res.error||'오류','error');
+    });
+}
+function refreshApproved(){
+  fetch(APPS_SCRIPT_URL+'?action=getApproved').then(function(r){return r.json();}).then(function(d){allServices=Array.isArray(d)?d:[];renderMarkers();renderTable();renderStats();});
+}
+
+// 프로그램 수정 모달
+function openProgEditModal(id){
+  var p=adminProgs.find(function(x){return String(x.id)===String(id);});
+  if(!p)return;
+  document.getElementById('pe-id').value=p.id;
+  document.getElementById('pe-name').value=p.programName;
+  document.getElementById('pe-org').value=p.organization;
+  document.getElementById('pe-applyStart').value=p.applyStart;
+  document.getElementById('pe-applyEnd').value=p.applyEnd;
+  document.getElementById('pe-progStart').value=p.progStart||'';
+  document.getElementById('pe-progEnd').value=p.progEnd||'';
+  document.getElementById('pe-capacity').value=p.capacity||'';
+  document.getElementById('pe-note').value=p.note||'';
+  document.getElementById('pe-content').value=p.content||'';
+  document.getElementById('prog-edit-overlay').classList.add('open');
+}
+function closeProgEditModal(e){if(e.target===document.getElementById('prog-edit-overlay'))closeProgEditModalDirect();}
+function closeProgEditModalDirect(){document.getElementById('prog-edit-overlay').classList.remove('open');}
+function submitProgEdit(){
+  var data={action:'updateProgram',pw:adminPw,
+    id:document.getElementById('pe-id').value,
+    programName:document.getElementById('pe-name').value,
+    organization:document.getElementById('pe-org').value,
+    applyStart:document.getElementById('pe-applyStart').value,
+    applyEnd:document.getElementById('pe-applyEnd').value,
+    progStart:document.getElementById('pe-progStart').value,
+    progEnd:document.getElementById('pe-progEnd').value,
+    capacity:document.getElementById('pe-capacity').value,
+    note:document.getElementById('pe-note').value,
+    content:document.getElementById('pe-content').value
+  };
+  fetch(APPS_SCRIPT_URL+'?action=updateProgram',{method:'POST',body:JSON.stringify(data)})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.success){showToast('수정되었습니다.','success');closeProgEditModalDirect();loadAdminData();}
+      else showToast(res.error||'오류','error');
+    });
+}
+
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(type||'');setTimeout(function(){t.className='toast';},3000);}
+function setLoadingMsg(msg){document.getElementById('loading-msg').textContent=msg;}
+function hideLoading(){var l=document.getElementById('loading');l.style.opacity='0';l.style.transition='opacity .4s';setTimeout(function(){l.style.display='none';},400);}
+</script>
+</body>
+</html>
