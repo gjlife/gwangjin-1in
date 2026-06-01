@@ -282,6 +282,7 @@ tbody td{padding:11px 14px;vertical-align:middle}
         <div class="form-group"><label>진행 종료일</label><input type="date" id="pe-progEnd"></div>
         <div class="form-group"><label>신청 인원</label><input type="text" id="pe-capacity" placeholder="예: 20명"></div>
         <div class="form-group"><label>비고</label><input type="text" id="pe-note"></div>
+        <div class="form-group full"><label>신청 URL</label><input type="text" id="pe-applyUrl" placeholder="https://"></div>
         <div class="form-group full"><label>활동 내용</label><textarea id="pe-content" style="min-height:80px"></textarea></div>
       </div>
       <button class="submit-btn" onclick="submitProgEdit()" style="margin-top:16px">💾 수정 저장</button>
@@ -401,6 +402,7 @@ tbody td{padding:11px 14px;vertical-align:middle}
         <div class="form-group"><label>진행 종료일</label><input type="date" id="p-progEnd"></div>
         <div class="form-group"><label>신청 인원</label><input type="text" id="p-capacity" placeholder="예: 20명"></div>
         <div class="form-group"><label>비고</label><input type="text" id="p-note" placeholder="기타 안내사항"></div>
+        <div class="form-group full"><label>신청 URL</label><input type="text" id="p-applyUrl" placeholder="https://forms.google.com/..."></div>
         <div class="form-group full"><label>활동 내용 <span class="req">*</span></label><textarea id="p-content" placeholder="프로그램 활동 내용을 작성해 주세요."></textarea></div>
       </div>
       <button class="submit-btn" id="prog-submit-btn" onclick="submitProgram()">✅ 프로그램 등록</button>
@@ -450,7 +452,7 @@ tbody td{padding:11px 14px;vertical-align:middle}
 </div>
 
 <script>
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzoxnlYMi9vNTBMQ3M4TZqn1d4TKZPh3bM2gosgpUMxbD0LxJSvrhQ9gkeizEMcWs7anQ/exec';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBJdSbVm_djEGz63sUQDwfoZ3yaZl2w3dZMtCj7VhK5zTIpfkUp40ya1nNdDYWs5UYdg/exec';
 
 var map, allServices = [], overlays = [];
 var allPrograms = [], activePrograms = [];
@@ -616,6 +618,7 @@ function renderPrograms(){
         +(p.note?"<div class='prog-item'><span class='pl'>📌 비고 </span>"+p.note+"</div>":"")
       +"</div>"
       +(p.content?"<div class='prog-content'>"+p.content+"</div>":"")
+      +(p.applyUrl?"<a href='"+p.applyUrl+"' target='_blank' rel='noopener' style='display:block;margin-top:12px;padding:11px;background:#10B981;color:#fff;border-radius:9px;text-align:center;font-size:14px;font-weight:700;text-decoration:none'>✅ 신청하기</a>":"")
       +"</div>";
   }).join('');
 }
@@ -747,6 +750,7 @@ function submitProgram(){
     progEnd:document.getElementById('p-progEnd').value,
     capacity:document.getElementById('p-capacity').value.trim(),
     note:document.getElementById('p-note').value.trim(),
+    applyUrl:document.getElementById('p-applyUrl').value.trim(),
     content:document.getElementById('p-content').value.trim()
   };
   fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(d)})
@@ -754,7 +758,7 @@ function submitProgram(){
     .then(function(res){
       btn.disabled=false;btn.textContent='✅ 프로그램 등록';
       showToast(res.message,res.success?'success':'error');
-      if(res.success)['p-name','p-org','p-applyStart','p-applyEnd','p-progStart','p-progEnd','p-capacity','p-note','p-content'].forEach(function(id){document.getElementById(id).value='';});
+      if(res.success)['p-name','p-org','p-applyStart','p-applyEnd','p-progStart','p-progEnd','p-capacity','p-note','p-applyUrl','p-content'].forEach(function(id){document.getElementById(id).value='';});
     })
     .catch(function(){btn.disabled=false;btn.textContent='✅ 프로그램 등록';showToast('오류가 발생했습니다.','error');});
 }
@@ -865,6 +869,7 @@ function openProgEditModal(id){
   document.getElementById('pe-progEnd').value=p.progEnd||'';
   document.getElementById('pe-capacity').value=p.capacity||'';
   document.getElementById('pe-note').value=p.note||'';
+  document.getElementById('pe-applyUrl').value=p.applyUrl||'';
   document.getElementById('pe-content').value=p.content||'';
   document.getElementById('prog-edit-overlay').classList.add('open');
 }
@@ -881,6 +886,7 @@ function submitProgEdit(){
     progEnd:document.getElementById('pe-progEnd').value,
     capacity:document.getElementById('pe-capacity').value,
     note:document.getElementById('pe-note').value,
+    applyUrl:document.getElementById('pe-applyUrl').value,
     content:document.getElementById('pe-content').value
   };
   fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(data)})
