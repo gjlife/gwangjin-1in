@@ -55,13 +55,14 @@ nav{display:flex;gap:2px;flex-shrink:0}
 .locate-btn{position:absolute;bottom:24px;right:12px;z-index:1000;width:50px;height:50px;background:#fff;border:none;border-radius:50%;box-shadow:0 2px 12px rgba(0,0,0,.25);font-size:22px;cursor:pointer;display:grid;place-items:center}
 .locate-btn:active{transform:scale(.92)}
 
-.kakao-overlay{background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:16px 18px;min-width:230px;max-width:270px;font-family:'Noto Sans KR',sans-serif;position:relative}
+.kakao-overlay{background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:16px 18px;min-width:230px;max-width:280px;font-family:'Noto Sans KR',sans-serif;position:relative}
+.kakao-overlay .ov-row span:last-child{word-break:break-all;line-height:1.5}
 .kakao-overlay::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);border:10px solid transparent;border-top-color:#fff;border-bottom:0}
 .ov-close{position:absolute;top:8px;right:10px;background:none;border:none;font-size:16px;cursor:pointer;color:#999}
 .ov-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;color:#fff;margin-bottom:8px}
 .ov-title{font-size:15px;font-weight:900;color:#111;margin-bottom:3px}
 .ov-org{font-size:12px;color:#6B7280;margin-bottom:8px}
-.ov-row{font-size:12px;color:#374151;display:flex;gap:6px;margin-bottom:3px}
+.ov-row{font-size:12px;color:#374151;display:flex;gap:6px;margin-bottom:3px;align-items:flex-start}
 .ov-row .lbl{font-weight:700;white-space:nowrap}
 .ov-detail-btn{margin-top:10px;width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
 
@@ -308,13 +309,13 @@ tbody td{padding:11px 14px;vertical-align:middle}
 <div class="page active" id="page-map">
   <div class="map-controls">
     <button class="filter-btn all active"      onclick="filterMap('전체',this)">전체</button>
+    <button class="filter-btn cat-돌봄"        onclick="filterMap('돌봄',this)">돌봄</button>
+    <button class="filter-btn cat-사회적관계"  onclick="filterMap('사회적관계',this)">사회적관계</button>
     <button class="filter-btn cat-의료"        onclick="filterMap('의료',this)">의료</button>
     <button class="filter-btn cat-식사"        onclick="filterMap('식사',this)">식사</button>
     <button class="filter-btn cat-안전"        onclick="filterMap('안전',this)">안전</button>
     <button class="filter-btn cat-주거"        onclick="filterMap('주거',this)">주거</button>
     <button class="filter-btn cat-경제"        onclick="filterMap('경제',this)">경제</button>
-    <button class="filter-btn cat-사회적관계"  onclick="filterMap('사회적관계',this)">사회적관계</button>
-    <button class="filter-btn cat-돌봄"        onclick="filterMap('돌봄',this)">돌봄</button>
     <button class="filter-btn cat-문화"        onclick="filterMap('문화',this)">문화</button>
     <button class="filter-btn cat-기타"        onclick="filterMap('기타',this)">기타</button>
   </div>
@@ -366,8 +367,19 @@ tbody td{padding:11px 14px;vertical-align:middle}
       <div class="form-desc">광진구 1인가구를 위한 서비스를 등록해 주세요. 관리자 승인 후 지도에 표시됩니다.</div>
       <div class="form-grid">
         <div class="form-group"><label>서비스명 <span class="req">*</span></label><input type="text" id="f-name" placeholder="예: 1인가구 반찬 지원"></div>
-        <div class="form-group"><label>카테고리 <span class="req">*</span></label>
-          <select id="f-cat"><option value="">선택하세요</option><option>의료</option><option>식사</option><option>안전</option><option>주거</option><option>경제</option><option>사회적관계</option><option>돌봄</option><option>문화</option><option>기타</option></select>
+        <div class="form-group full">
+          <label>카테고리 <span class="req">*</span> <span style="font-size:12px;font-weight:400;color:var(--text-sub)">(중복선택 가능)</span></label>
+          <div id="f-cat-wrap" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="돌봄" style="width:16px;height:16px;accent-color:var(--primary)"> 돌봄</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="사회적관계" style="width:16px;height:16px;accent-color:var(--primary)"> 사회적관계</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="의료" style="width:16px;height:16px;accent-color:var(--primary)"> 의료</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="식사" style="width:16px;height:16px;accent-color:var(--primary)"> 식사</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="안전" style="width:16px;height:16px;accent-color:var(--primary)"> 안전</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="주거" style="width:16px;height:16px;accent-color:var(--primary)"> 주거</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="경제" style="width:16px;height:16px;accent-color:var(--primary)"> 경제</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="문화" style="width:16px;height:16px;accent-color:var(--primary)"> 문화</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="기타" style="width:16px;height:16px;accent-color:var(--primary)"> 기타</label>
+          </div>
         </div>
         <div class="form-group"><label>운영기관 <span class="req">*</span></label><input type="text" id="f-org" placeholder="예: 광진구청 복지과"></div>
         <div class="form-group"><label>연락처</label><input type="text" id="f-phone" placeholder="예: 02-450-1234"></div>
@@ -452,7 +464,7 @@ tbody td{padding:11px 14px;vertical-align:middle}
 </div>
 
 <script>
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBJdSbVm_djEGz63sUQDwfoZ3yaZl2w3dZMtCj7VhK5zTIpfkUp40ya1nNdDYWs5UYdg/exec';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBloOfdMnP_U6krS6g713_FVUXK3UT5sLD44exjgRNpe2cvPrGhO0a2HKY3vWGNJKQQA/exec';
 
 var map, allServices = [], overlays = [];
 var allPrograms = [], activePrograms = [];
@@ -710,12 +722,14 @@ function switchRegTab(tab){
 }
 
 function submitForm(){
-  var req={'f-name':'서비스명','f-cat':'카테고리','f-org':'운영기관','f-addr':'주소','f-desc':'서비스 내용','f-registrant':'등록자'};
+  var cats=document.querySelectorAll('#f-cat-wrap input:checked');
+  if(cats.length===0){showToast('"카테고리"를 하나 이상 선택해 주세요.','error');return;}
+  var req={'f-name':'서비스명','f-org':'운영기관','f-addr':'주소','f-desc':'서비스 내용','f-registrant':'등록자'};
   for(var id in req){if(!document.getElementById(id).value.trim()){showToast('"'+req[id]+'"을(를) 입력해 주세요.','error');document.getElementById(id).focus();return;}}
   var btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ 등록 중...';
   var d={action:'add',
     serviceName:document.getElementById('f-name').value.trim(),
-    category:document.getElementById('f-cat').value,
+    category:(function(){var cbs=document.querySelectorAll('#f-cat-wrap input:checked');return Array.from(cbs).map(function(c){return c.value;}).join(',');})(),
     organization:document.getElementById('f-org').value.trim(),
     phone:document.getElementById('f-phone').value.trim(),
     address:document.getElementById('f-addr').value.trim()+' '+document.getElementById('f-addr-detail').value.trim(),
@@ -732,7 +746,7 @@ function submitForm(){
     .then(function(res){
       btn.disabled=false;btn.textContent='✅ 서비스 등록 신청';
       showToast(res.message,res.success?'success':'error');
-      if(res.success)['f-name','f-cat','f-org','f-phone','f-addr','f-addr-detail','f-hours','f-target','f-fee','f-apply','f-homepage','f-desc','f-registrant'].forEach(function(id){document.getElementById(id).value='';});
+      if(res.success){['f-name','f-org','f-phone','f-addr','f-addr-detail','f-hours','f-target','f-fee','f-apply','f-homepage','f-desc','f-registrant'].forEach(function(id){document.getElementById(id).value='';});document.querySelectorAll('#f-cat-wrap input').forEach(function(c){c.checked=false;});}
     })
     .catch(function(){btn.disabled=false;btn.textContent='✅ 서비스 등록 신청';showToast('오류가 발생했습니다.','error');});
 }
@@ -897,7 +911,7 @@ function submitProgEdit(){
     });
 }
 
-function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(type||'');setTimeout(function(){t.className='toast';},3000);}
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(type||'');setTimeout(function(){t.className='toast';},2000);}
 function setLoadingMsg(msg){document.getElementById('loading-msg').textContent=msg;}
 function hideLoading(){var l=document.getElementById('loading');l.style.opacity='0';l.style.transition='opacity .4s';setTimeout(function(){l.style.display='none';},400);}
 </script>
