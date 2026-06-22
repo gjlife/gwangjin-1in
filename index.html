@@ -518,7 +518,28 @@ function renderMarkers() {
     var firstCat=svc.category?svc.category.split(',')[0].trim():'기타';
     var color=CAT_COLORS[firstCat]||CAT_COLORS['기타'];
     var pos=new kakao.maps.LatLng(lat,lng);
-    var svg="<svg xmlns='http://www.w3.org/2000/svg' width='36' height='44' viewBox='0 0 36 44'><ellipse cx='18' cy='42' rx='8' ry='3' fill='rgba(0,0,0,0.15)'/><path d='M18 0C8 0 0 8 0 18c0 12 18 26 18 26S36 30 36 18C36 8 28 0 18 0z' fill='"+color+"'/><circle cx='18' cy='18' r='9' fill='white' opacity='0.95'/></svg>";
+    // 카테고리별 분할 원형 마커 생성
+    var catList=svc.category?svc.category.split(',').map(function(c){return c.trim();}):['기타'];
+    var n=catList.length;
+    var cx=18,cy=18,r=9;
+    var piePaths='';
+    if(n===1){
+      piePaths="<circle cx='"+cx+"' cy='"+cy+"' r='"+r+"' fill='"+( CAT_COLORS[catList[0]]||CAT_COLORS['기타'])+"'/>";
+    } else {
+      var angleStep=360/n;
+      for(var pi=0;pi<n;pi++){
+        var startAngle=(angleStep*pi-90)*Math.PI/180;
+        var endAngle=(angleStep*(pi+1)-90)*Math.PI/180;
+        var x1=cx+r*Math.cos(startAngle);
+        var y1=cy+r*Math.sin(startAngle);
+        var x2=cx+r*Math.cos(endAngle);
+        var y2=cy+r*Math.sin(endAngle);
+        var large=angleStep>180?1:0;
+        var pColor=CAT_COLORS[catList[pi]]||CAT_COLORS['기타'];
+        piePaths+="<path d='M"+cx+","+cy+" L"+x1.toFixed(2)+","+y1.toFixed(2)+" A"+r+","+r+" 0 "+large+",1 "+x2.toFixed(2)+","+y2.toFixed(2)+" Z' fill='"+pColor+"'/>";
+      }
+    }
+    var svg="<svg xmlns='http://www.w3.org/2000/svg' width='36' height='44' viewBox='0 0 36 44'><ellipse cx='18' cy='42' rx='8' ry='3' fill='rgba(0,0,0,0.15)'/><path d='M18 0C8 0 0 8 0 18c0 12 18 26 18 26S36 30 36 18C36 8 28 0 18 0z' fill='"+color+"'/><clipPath id='cc'><circle cx='18' cy='18' r='9'/></clipPath><g clip-path='url(#cc)'>"+piePaths+"</g><circle cx='18' cy='18' r='9' fill='none' stroke='white' stroke-width='1.5' opacity='0.9'/></svg>";
     var marker=new kakao.maps.Marker({position:pos,image:new kakao.maps.MarkerImage('data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg),new kakao.maps.Size(36,44),{offset:new kakao.maps.Point(18,44)}),map:map});
     var hp=svc.homepage&&svc.homepage.trim()?"<div class='ov-row'><span class='lbl'>🌐</span><a href='"+svc.homepage+"' target='_blank' style='color:#0B5FFF;font-size:11px;text-decoration:none'>홈페이지</a></div>":"";
     var content="<div class='kakao-overlay'><button class='ov-close' onclick='closeOverlay(\""+svc.id+"\")'>✕</button><div class='ov-badge' style='background:"+color+"'>"+svc.category+"</div><div class='ov-title'>"+svc.serviceName+"</div><div class='ov-org'>"+(svc.organization||'')+"</div><div class='ov-row'><span class='lbl'>📍</span><span>"+(svc.address||'-')+"</span></div><div class='ov-row'><span class='lbl'>📞</span><span>"+(svc.phone?"<a href='tel:"+svc.phone+"' style='color:#111;text-decoration:none'>"+svc.phone+"</a>":'-')+"</span></div>"+hp+"<button class='ov-detail-btn' onclick='openModal(\""+svc.id+"\")'>상세 정보 보기</button></div>";
