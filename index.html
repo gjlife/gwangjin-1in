@@ -246,8 +246,18 @@ tbody td{padding:11px 14px;vertical-align:middle}
       <input type="hidden" id="e-id">
       <div class="form-grid" style="gap:12px">
         <div class="form-group"><label>서비스명</label><input type="text" id="e-name"></div>
-        <div class="form-group"><label>카테고리</label>
-          <select id="e-cat"><option>의료</option><option>식사</option><option>안전</option><option>주거</option><option>경제</option><option>사회적관계</option><option>돌봄</option><option>문화</option><option>기타</option></select>
+        <div class="form-group full"><label>카테고리 <span style="font-size:12px;font-weight:400;color:var(--text-sub)">(중복선택 가능)</span></label>
+          <div id="e-cat-wrap" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="돌봄" style="width:16px;height:16px;accent-color:var(--primary)"> 돌봄</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="사회적관계" style="width:16px;height:16px;accent-color:var(--primary)"> 사회적관계</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="의료" style="width:16px;height:16px;accent-color:var(--primary)"> 의료</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="식사" style="width:16px;height:16px;accent-color:var(--primary)"> 식사</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="안전" style="width:16px;height:16px;accent-color:var(--primary)"> 안전</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="주거" style="width:16px;height:16px;accent-color:var(--primary)"> 주거</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="경제" style="width:16px;height:16px;accent-color:var(--primary)"> 경제</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="문화" style="width:16px;height:16px;accent-color:var(--primary)"> 문화</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:400;cursor:pointer"><input type="checkbox" value="기타" style="width:16px;height:16px;accent-color:var(--primary)"> 기타</label>
+          </div>
         </div>
         <div class="form-group"><label>운영기관</label><input type="text" id="e-org"></div>
         <div class="form-group"><label>연락처</label><input type="text" id="e-phone"></div>
@@ -696,7 +706,9 @@ function openEditModal(id){
   if(!s)return;
   document.getElementById('e-id').value=s.id;
   document.getElementById('e-name').value=s.serviceName;
-  document.getElementById('e-cat').value=s.category;
+  // 카테고리 체크박스 초기화 후 기존 값 체크
+  var eCats=s.category?s.category.split(',').map(function(c){return c.trim();}):[];
+  document.querySelectorAll('#e-cat-wrap input[type=checkbox]').forEach(function(cb){cb.checked=eCats.indexOf(cb.value)!==-1;});
   document.getElementById('e-org').value=s.organization;
   document.getElementById('e-phone').value=s.phone;
   document.getElementById('e-addr').value=s.address;
@@ -712,11 +724,15 @@ function closeEditModal(e){if(e.target===document.getElementById('edit-overlay')
 function closeEditModalDirect(){document.getElementById('edit-overlay').classList.remove('open');}
 
 function submitEdit(){
+  var editCats=Array.from(document.querySelectorAll('#e-cat-wrap input:checked')).map(function(c){return c.value;});
+  if(editCats.length===0){showToast('카테고리를 하나 이상 선택해 주세요.','error');return;}
+  var editId=document.getElementById('e-id').value;
+  if(!editId){showToast('수정할 서비스 ID가 없습니다.','error');return;}
   var data={
     action:'update', pw:adminPw,
-    id:document.getElementById('e-id').value,
+    id:editId,
     serviceName:document.getElementById('e-name').value,
-    category:document.getElementById('e-cat').value,
+    category:editCats.join(','),
     organization:document.getElementById('e-org').value,
     phone:document.getElementById('e-phone').value,
     address:document.getElementById('e-addr').value,
